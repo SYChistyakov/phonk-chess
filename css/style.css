@@ -15,7 +15,7 @@
   --text-dim:       #7a7a9a;
   --panel-bg:       rgba(10, 8, 20, 0.85);
   --panel-border:   rgba(179, 71, 255, 0.25);
-  --sq-size:        min(10vw, 72px);
+  --sq-size:        clamp(60px, 7vw, 90px);
   --board-size:     calc(var(--sq-size) * 8);
 }
 
@@ -36,9 +36,7 @@ html, body {
 }
 
 body {
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(179, 71, 255, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 60%);
+  background: url('../assets/img/bg.png') center bottom / cover no-repeat fixed;
   min-height: 100vh;
 }
 
@@ -77,20 +75,26 @@ body {
 
 /* ---------- App Layout ---------- */
 .app-container {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 16px 12px 32px;
-  gap: 16px;
+  display: block;
+  /* dark vignette over the photo so UI stays readable */
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(4,2,10,0.30) 0%, transparent 60%),
+    rgba(4, 2, 10, 0.48);
+  overflow: hidden;
 }
 
 /* ---------- Header ---------- */
 .game-header {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   text-align: center;
-  padding: 8px 0;
+  white-space: nowrap;
 }
 
 .game-title {
@@ -121,12 +125,9 @@ body {
 
 /* ---------- Game Layout ---------- */
 .game-layout {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  width: 100%;
-  max-width: 1100px;
-  justify-content: center;
+  position: absolute;
+  inset: 0;
+  display: block;
 }
 
 /* ---------- Panels ---------- */
@@ -142,6 +143,21 @@ body {
   flex-shrink: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.panel-left {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.panel-right {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 210px;
 }
 
 /* ---------- Player Cards ---------- */
@@ -273,10 +289,13 @@ body {
 
 /* ---------- Board Section ---------- */
 .board-section {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
 }
 
 .board-wrapper {
@@ -285,6 +304,9 @@ body {
   grid-template-columns: 18px 1fr;
   grid-template-rows: 1fr 18px;
   gap: 0;
+  /* Tilt board to match the table perspective in the photo */
+  transform: perspective(1100px) rotateX(38deg);
+  transform-origin: bottom center;
 }
 
 /* Board glow border */
@@ -761,32 +783,50 @@ body {
 
 /* ---------- Responsive: Tablet ---------- */
 @media (max-width: 900px) {
-  :root {
-    --sq-size: min(11vw, 65px);
-  }
+  :root { --sq-size: clamp(55px, 7vw, 80px); }
 
-  .panel {
-    width: 170px;
-    padding: 12px;
-  }
-
-  .panel-right {
-    width: 170px;
-  }
+  .panel       { width: 160px; padding: 12px; }
+  .panel-left  { left: 8px; }
+  .panel-right { right: 8px; width: 160px; }
 }
 
-/* ---------- Responsive: Mobile ---------- */
+/* ---------- Responsive: Mobile — reset overlay layout ---------- */
 @media (max-width: 767px) {
-  :root {
-    --sq-size: min(11.5vw, 56px);
+  :root { --sq-size: min(11.5vw, 56px); }
+
+  /* Switch back to scrollable flex column */
+  .app-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 12px 32px;
+    gap: 16px;
+    background: rgba(4, 2, 10, 0.72);
+  }
+
+  .game-header {
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+    white-space: normal;
   }
 
   .game-layout {
+    position: relative;
+    display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
 
+  /* Panels back to inline flow */
   .panel {
+    position: relative;
+    left: auto; right: auto; top: auto;
+    transform: none;
     width: 100%;
     max-width: 480px;
     flex-direction: row;
@@ -794,54 +834,30 @@ body {
     gap: 12px;
   }
 
-  .panel-left {
-    order: 2;
-  }
+  .panel-left  { order: 2; }
+  .panel-right { order: 3; width: 100%; max-width: 480px; }
 
+  /* Board back to inline flow, no perspective */
   .board-section {
     order: 1;
+    position: relative;
+    left: auto; bottom: auto;
+    transform: none;
   }
 
-  .panel-right {
-    order: 3;
-    width: 100%;
-    max-width: 480px;
+  .board-wrapper {
+    transform: none;
   }
 
-  .player-card {
-    flex: 1 1 140px;
-  }
-
-  .thinking-indicator {
-    flex: 0 0 100%;
-    justify-content: center;
-  }
-
-  .captured-pieces {
-    flex: 1 1 100%;
-  }
-
-  .control-group {
-    flex: 1 1 45%;
-    min-width: 140px;
-  }
-
-  .history-group {
-    flex: 1 1 100%;
-  }
-
-  .move-history {
-    max-height: 160px;
-  }
-
-  .action-btn {
-    padding: 9px 12px;
-    font-size: 10px;
-  }
+  .player-card    { flex: 1 1 140px; }
+  .thinking-indicator { flex: 0 0 100%; justify-content: center; }
+  .captured-pieces    { flex: 1 1 100%; }
+  .control-group      { flex: 1 1 45%; min-width: 140px; }
+  .history-group      { flex: 1 1 100%; }
+  .move-history       { max-height: 160px; }
+  .action-btn         { padding: 9px 12px; font-size: 10px; }
 }
 
 @media (max-width: 380px) {
-  :root {
-    --sq-size: min(12vw, 44px);
-  }
+  :root { --sq-size: min(12vw, 44px); }
 }
