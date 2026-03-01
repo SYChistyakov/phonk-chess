@@ -132,8 +132,8 @@ body {
 
 /* ---------- Panels ---------- */
 .panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  background: rgba(8, 6, 18, 0.42);
+  border: none;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -141,8 +141,13 @@ body {
   gap: 16px;
   width: 200px;
   flex-shrink: 0;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  /* Neon border matching board style */
+  box-shadow:
+    0 0 0 1px rgba(179, 71, 255, 0.55),
+    0 0 16px rgba(179, 71, 255, 0.18),
+    0 0 36px rgba(0, 212, 255, 0.07);
   /* Lock height to board so history growth never shifts the layout */
   max-height: var(--board-size);
   overflow: hidden;
