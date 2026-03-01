@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PhonkChess — Tokyo Drift</title>
+  <title>Tokyo Night Chess</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -29,9 +29,8 @@
     <!-- Header -->
     <header class="game-header">
       <h1 class="game-title">
-        <span class="title-phonk">PHONK</span><span class="title-chess">CHESS</span>
+        <span class="title-phonk">TOKYO</span><span class="title-chess"> NIGHT CHESS</span>
       </h1>
-      <p class="game-subtitle">TOKYO DRIFT EDITION</p>
     </header>
 
     <!-- Game layout -->
@@ -100,7 +99,11 @@
           <button class="action-btn" id="btn-new-game">NEW GAME</button>
           <button class="action-btn action-btn--secondary" id="btn-flip">FLIP BOARD</button>
           <button class="action-btn action-btn--secondary" id="btn-undo">UNDO MOVE</button>
-          <button class="action-btn action-btn--music" id="btn-music">♪ MUSIC: ON</button>
+          <div class="music-control">
+            <button class="action-btn action-btn--music" id="btn-music">♪ ON</button>
+            <input type="range" class="volume-slider" id="volume-slider"
+                   min="0" max="100" value="35" aria-label="Music volume" />
+          </div>
         </div>
 
         <div class="control-group">

@@ -594,6 +594,66 @@ body {
   text-shadow: none;
 }
 
+/* Music control: button + slider in one row, same width as siblings */
+.music-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.music-control .action-btn--music {
+  width: 52px;
+  min-width: 52px;
+  flex-shrink: 0;
+  padding: 8px 0;
+  font-size: 9px;
+  text-align: center;
+}
+
+.music-control .volume-slider {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Volume slider */
+.volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 107, 0, 0.25);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--neon-orange);
+  box-shadow: 0 0 6px rgba(255, 107, 0, 0.7);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 12px rgba(255, 107, 0, 1);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: var(--neon-orange);
+  box-shadow: 0 0 6px rgba(255, 107, 0, 0.7);
+  cursor: pointer;
+}
+
 /* ---------- Game Status ---------- */
 .status-display {
   font-family: 'Orbitron', sans-serif;

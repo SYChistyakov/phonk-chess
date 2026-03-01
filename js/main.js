@@ -99,108 +99,55 @@ function _setupUI() {
   document.getElementById('btn-undo').addEventListener('click', _undoMove);
   document.getElementById('btn-overlay-new').addEventListener('click', _newGame);
   document.getElementById('btn-music').addEventListener('click', _toggleMusic);
+  document.getElementById('volume-slider').addEventListener('input', _onVolumeChange);
 
   // Start music on first user interaction (browser autoplay policy)
   _startMusic();
 }
 
-/* ---- Background music (Web Audio API — gapless looping) ---- */
+/* ---- Background music (HTMLAudioElement — works on file:// and http://) ---- */
 const BGMusic = (() => {
-  let ctx    = null;
-  let buffer = null;
-  let source = null;
-  let gain   = null;
-  let loopStart = 0;
-  let loopEnd   = 0;
-  let _muted = false;
-  const VOLUME = 0.35;
+  let audio  = null;
+  let _muted  = false;
+  let _volume = 0.35;
 
-  /* Decode file and find loop points by trimming silence */
-  async function load() {
-    try {
-      ctx  = new (window.AudioContext || window.webkitAudioContext)();
-      gain = ctx.createGain();
-      gain.gain.value = VOLUME;
-      gain.connect(ctx.destination);
-
-      const res = await fetch('assets/sounds/bg.mp3');
-      const ab  = await res.arrayBuffer();
-      buffer    = await ctx.decodeAudioData(ab);
-
-      _findLoopPoints();
-    } catch (e) {
-      console.warn('BGMusic init failed:', e);
-    }
+  /* Create the audio element — the browser media subsystem handles file:// natively */
+  function load() {
+    audio        = new Audio('assets/sounds/bg.mp3');
+    audio.loop   = true;
+    audio.volume = _volume;
   }
 
-  /* Walk the waveform to trim leading/trailing silence and
-     snap the end point to a zero-crossing for a clean join. */
-  function _findLoopPoints() {
-    const data   = buffer.getChannelData(0);
-    const sr     = buffer.sampleRate;
-    const thresh = 0.005;
-
-    // First non-silent sample
-    let s = 0;
-    for (let i = 0; i < data.length; i++) {
-      if (Math.abs(data[i]) > thresh) { s = i; break; }
-    }
-
-    // Last non-silent sample
-    let e = data.length - 1;
-    for (let i = data.length - 1; i >= 0; i--) {
-      if (Math.abs(data[i]) > thresh) { e = i; break; }
-    }
-
-    // Walk backwards up to 50 ms to find nearest zero-crossing
-    const window50ms = Math.floor(sr * 0.05);
-    for (let i = e; i > e - window50ms && i > 0; i--) {
-      if (data[i - 1] * data[i] <= 0) { e = i; break; }
-    }
-
-    loopStart = s / sr;
-    loopEnd   = e / sr;
-    console.log(`BGMusic loop: ${loopStart.toFixed(3)}s → ${loopEnd.toFixed(3)}s`);
-  }
-
-  /* Start looping from loopStart. Replaces any existing source. */
   function play() {
-    if (!ctx || !buffer) return;
-    if (ctx.state === 'suspended') ctx.resume();
-
-    if (source) { try { source.stop(); } catch (_) {} source.disconnect(); }
-
-    source            = ctx.createBufferSource();
-    source.buffer     = buffer;
-    source.loop       = true;
-    source.loopStart  = loopStart;
-    source.loopEnd    = loopEnd;
-    source.connect(gain);
-    source.start(0, loopStart);   // begin playback at loop start
+    if (!audio) return;
+    audio.play().catch(() => {}); // silently ignore autoplay-policy rejections
   }
 
-  /* Smooth mute/unmute via gain ramp — no clicking artefact */
   function setMuted(mute) {
     _muted = mute;
-    if (!ctx) return;
+    if (!audio) return;
     if (mute) {
-      gain.gain.setTargetAtTime(0,      ctx.currentTime, 0.3);
+      audio.volume = 0;
     } else {
-      if (ctx.state === 'suspended') ctx.resume();
-      gain.gain.setTargetAtTime(VOLUME, ctx.currentTime, 0.3);
+      audio.volume = _volume;
+      if (audio.paused) audio.play().catch(() => {}); // start if not yet playing
     }
   }
 
   function isMuted() { return _muted; }
 
-  return { load, play, setMuted, isMuted };
+  function setVolume(v) {
+    _volume = v;
+    if (audio && !_muted) audio.volume = _volume;
+  }
+
+  return { load, play, setMuted, isMuted, setVolume };
 })();
 
 function _startMusic() {
-  BGMusic.load().then(() => {
-    // Try immediate play; fall back to first user gesture if blocked
-    BGMusic.play();
-  });
+  BGMusic.load();
+  // Try immediate play; browser autoplay policy may block this until a user gesture
+  BGMusic.play();
   // Guarantee play on first interaction regardless of autoplay policy
   document.addEventListener('click', () => {
     if (!BGMusic.isMuted()) BGMusic.play();
@@ -212,8 +159,21 @@ function _toggleMusic() {
   BGMusic.setMuted(nowMuted);
   musicMuted = nowMuted;
   const btn = document.getElementById('btn-music');
-  btn.textContent = nowMuted ? '♪ MUSIC: OFF' : '♪ MUSIC: ON';
+  btn.textContent = nowMuted ? '♪ OFF' : '♪ ON';
   btn.classList.toggle('muted', nowMuted);
+}
+
+function _onVolumeChange(e) {
+  const v = parseInt(e.target.value, 10) / 100;
+  BGMusic.setVolume(v);
+  // If they raise volume while muted, unmute automatically
+  if (v > 0 && BGMusic.isMuted()) {
+    BGMusic.setMuted(false);
+    musicMuted = false;
+    const btn = document.getElementById('btn-music');
+    btn.textContent = '♪ ON';
+    btn.classList.remove('muted');
+  }
 }
 
 /* ---- New game ---- */
@@ -234,6 +194,9 @@ function _newGame() {
   _setThinking(false);
 
   if (!aiWorker) _initWorker();
+
+  // Guaranteed user gesture — start music if not yet playing
+  if (!BGMusic.isMuted()) BGMusic.play();
 }
 
 /* ---- Player move handler ---- */
