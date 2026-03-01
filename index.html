@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhonkChess — Tokyo Drift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Drift smoke particles -->
+  <div class="smoke-container" aria-hidden="true">
+    <div class="smoke smoke-1"></div>
+    <div class="smoke smoke-2"></div>
+    <div class="smoke smoke-3"></div>
+    <div class="smoke smoke-4"></div>
+    <div class="smoke smoke-5"></div>
+    <div class="smoke smoke-6"></div>
+    <div class="smoke smoke-7"></div>
+    <div class="smoke smoke-8"></div>
+  </div>
+
+  <!-- Main container -->
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="game-header">
+      <h1 class="game-title">
+        <span class="title-phonk">PHONK</span><span class="title-chess">CHESS</span>
+      </h1>
+      <p class="game-subtitle">TOKYO DRIFT EDITION</p>
+    </header>
+
+    <!-- Game layout -->
+    <main class="game-layout">
+
+      <!-- Left panel: player info -->
+      <aside class="panel panel-left">
+        <div class="player-card player-card--ai" id="card-black">
+          <div class="player-icon">
+            <img src="assets/pieces/bK.svg" alt="Black King" class="player-piece-icon" />
+          </div>
+          <div class="player-info">
+            <span class="player-name" id="ai-label">CPU</span>
+            <span class="player-tag">OPPONENT</span>
+          </div>
+          <div class="player-status" id="status-black"></div>
+        </div>
+
+        <div class="thinking-indicator" id="thinking-indicator">
+          <div class="thinking-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="thinking-label">CPU THINKING</span>
+        </div>
+
+        <div class="player-card player-card--human" id="card-white">
+          <div class="player-icon">
+            <img src="assets/pieces/wK.svg" alt="White King" class="player-piece-icon" />
+          </div>
+          <div class="player-info">
+            <span class="player-name">YOU</span>
+            <span class="player-tag">PLAYER</span>
+          </div>
+          <div class="player-status" id="status-white"></div>
+        </div>
+
+        <div class="captured-pieces">
+          <div class="captured-label">CAPTURED</div>
+          <div class="captured-list" id="captured-by-white"></div>
+          <div class="captured-list" id="captured-by-black"></div>
+        </div>
+      </aside>
+
+      <!-- Center: board -->
+      <section class="board-section">
+        <div class="board-wrapper" id="board-wrapper">
+          <div class="board-rank-labels" id="rank-labels"></div>
+          <div class="board-grid" id="board-grid"></div>
+          <div class="board-file-labels" id="file-labels"></div>
+        </div>
+      </section>
+
+      <!-- Right panel: controls and move history -->
+      <aside class="panel panel-right">
+
+        <div class="control-group">
+          <label class="control-label">DIFFICULTY</label>
+          <div class="difficulty-buttons">
+            <button class="diff-btn" data-depth="2" id="btn-easy">EASY</button>
+            <button class="diff-btn active" data-depth="3" id="btn-medium">MEDIUM</button>
+            <button class="diff-btn" data-depth="4" id="btn-hard">HARD</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <button class="action-btn" id="btn-new-game">NEW GAME</button>
+          <button class="action-btn action-btn--secondary" id="btn-flip">FLIP BOARD</button>
+          <button class="action-btn action-btn--secondary" id="btn-undo">UNDO MOVE</button>
+          <button class="action-btn action-btn--music" id="btn-music">♪ MUSIC: ON</button>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">GAME STATUS</label>
+          <div class="status-display" id="game-status-text">WHITE TO MOVE</div>
+        </div>
+
+        <div class="control-group history-group">
+          <label class="control-label">MOVE HISTORY</label>
+          <div class="move-history" id="move-history">
+            <div class="history-empty">No moves yet</div>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+  </div>
+
+  <!-- Game over overlay -->
+  <div class="overlay" id="game-overlay" aria-hidden="true">
+    <div class="overlay-content">
+      <div class="overlay-icon" id="overlay-icon">♛</div>
+      <h2 class="overlay-title" id="overlay-title">CHECKMATE</h2>
+      <p class="overlay-subtitle" id="overlay-subtitle">White wins!</p>
+      <button class="action-btn overlay-btn" id="btn-overlay-new">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- Background music -->
+  <audio id="bg-music" src="assets/sounds/bg.mp3" loop preload="auto"></audio>
+
+  <!-- chess.js (UMD build — exposes window.Chess) -->
+  <script src="js/chess-umd.js"></script>
+  <!-- Game scripts -->
+  <script src="js/board.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
