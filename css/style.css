@@ -5,8 +5,8 @@
 /* ---------- CSS Variables ---------- */
 :root {
   --bg-page:        #08080f;
-  --bg-dark-sq:     #1a1a2e;
-  --bg-light-sq:    #2a1b3d;
+  --bg-dark-sq:     rgba(20, 18, 48, 0.72);
+  --bg-light-sq:    rgba(42, 27, 61, 0.60);
   --neon-purple:    #b347ff;
   --neon-cyan:      #00d4ff;
   --neon-orange:    #ff6b00;
@@ -15,7 +15,7 @@
   --text-dim:       #7a7a9a;
   --panel-bg:       rgba(10, 8, 20, 0.85);
   --panel-border:   rgba(179, 71, 255, 0.25);
-  --sq-size:        clamp(60px, 7vw, 90px);
+  --sq-size:        min(7.5vw, 56px);
   --board-size:     calc(var(--sq-size) * 8);
 }
 
@@ -36,7 +36,9 @@ html, body {
 }
 
 body {
-  background: url('../assets/img/bg.png') center bottom / cover no-repeat fixed;
+  background:
+    linear-gradient(rgba(4,2,10,0.55), rgba(4,2,10,0.55)),
+    url('../assets/img/bg.png') center top / cover no-repeat fixed;
   min-height: 100vh;
 }
 
@@ -75,26 +77,20 @@ body {
 
 /* ---------- App Layout ---------- */
 .app-container {
-  position: fixed;
-  inset: 0;
+  position: relative;
   z-index: 1;
-  display: block;
-  /* dark vignette over the photo so UI stays readable */
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(4,2,10,0.30) 0%, transparent 60%),
-    rgba(4, 2, 10, 0.48);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 16px 12px 32px;
+  gap: 16px;
 }
 
 /* ---------- Header ---------- */
 .game-header {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
   text-align: center;
-  white-space: nowrap;
+  padding: 8px 0;
 }
 
 .game-title {
@@ -125,9 +121,13 @@ body {
 
 /* ---------- Game Layout ---------- */
 .game-layout {
-  position: absolute;
-  inset: 0;
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  max-width: 1100px;
+  justify-content: center;
+  margin-top: auto; /* pushes board area to bottom, face stays visible */
 }
 
 /* ---------- Panels ---------- */
@@ -143,22 +143,11 @@ body {
   flex-shrink: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  /* Lock height to board so history growth never shifts the layout */
+  max-height: var(--board-size);
+  overflow: hidden;
 }
 
-.panel-left {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.panel-right {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 210px;
-}
 
 /* ---------- Player Cards ---------- */
 .player-card {
@@ -289,52 +278,40 @@ body {
 
 /* ---------- Board Section ---------- */
 .board-section {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .board-wrapper {
   position: relative;
-  display: grid;
-  grid-template-columns: 18px 1fr;
-  grid-template-rows: 1fr 18px;
-  gap: 0;
-  /* Tilt board to match the table perspective in the photo */
-  transform: perspective(1100px) rotateX(38deg);
-  transform-origin: bottom center;
+  display: inline-block;
 }
 
-/* Board glow border */
-.board-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan), var(--neon-purple));
-  z-index: -1;
-  opacity: 0.6;
-  animation: borderGlow 3s ease-in-out infinite alternate;
+/* Board neon border via box-shadow (matches piece glow style) */
+.board-wrapper {
+  box-shadow:
+    0 0 0 2px rgba(179, 71, 255, 0.7),
+    0 0 18px rgba(179, 71, 255, 0.4),
+    0 0 40px rgba(0, 212, 255, 0.15);
 }
 
-@keyframes borderGlow {
-  from { opacity: 0.4; box-shadow: 0 0 20px rgba(179, 71, 255, 0.3); }
-  to   { opacity: 0.8; box-shadow: 0 0 40px rgba(0, 212, 255, 0.4); }
-}
-
-/* Check state: board pulses red */
-.board-wrapper.in-check::before {
-  background: var(--danger-red);
+/* Check state: swap to red pulse */
+.board-wrapper.in-check {
+  box-shadow:
+    0 0 0 2px rgba(255, 0, 64, 0.9),
+    0 0 18px rgba(255, 0, 64, 0.6),
+    0 0 50px rgba(255, 0, 64, 0.3);
   animation: checkPulse 0.6s ease-in-out infinite alternate;
 }
 
+/* Remove the pseudo-element entirely */
+.board-wrapper::before { display: none; }
+
 @keyframes checkPulse {
-  from { opacity: 0.5; box-shadow: 0 0 20px rgba(255, 0, 64, 0.4); }
-  to   { opacity: 1;   box-shadow: 0 0 60px rgba(255, 0, 64, 0.8); }
+  from { box-shadow: 0 0 0 2px rgba(255,0,64,0.7), 0 0 18px rgba(255,0,64,0.4), 0 0 40px rgba(255,0,64,0.2); }
+  to   { box-shadow: 0 0 0 2px rgba(255,0,64,1.0), 0 0 30px rgba(255,0,64,0.8), 0 0 70px rgba(255,0,64,0.5); }
 }
 
 /* ---------- Board Grid ---------- */
@@ -461,11 +438,9 @@ body {
   pointer-events: none;
 }
 
-/* ---------- Coordinate Labels ---------- */
+/* ---------- Coordinate Labels (hidden) ---------- */
 .board-rank-labels {
-  grid-column: 1;
-  grid-row: 1;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
@@ -473,9 +448,7 @@ body {
 }
 
 .board-file-labels {
-  grid-column: 2;
-  grid-row: 2;
-  display: flex;
+  display: none;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
@@ -638,6 +611,9 @@ body {
 /* ---------- Move History ---------- */
 .history-group {
   flex: 1;
+  min-height: 0; /* lets flex child shrink below content size */
+  display: flex;
+  flex-direction: column;
 }
 
 .move-history {
@@ -645,7 +621,8 @@ body {
   border: 1px solid rgba(179, 71, 255, 0.15);
   border-radius: 8px;
   padding: 8px;
-  max-height: 260px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   font-family: 'Rajdhani', sans-serif;
   scrollbar-width: thin;
@@ -783,50 +760,22 @@ body {
 
 /* ---------- Responsive: Tablet ---------- */
 @media (max-width: 900px) {
-  :root { --sq-size: clamp(55px, 7vw, 80px); }
+  :root { --sq-size: min(11vw, 65px); }
 
-  .panel       { width: 160px; padding: 12px; }
-  .panel-left  { left: 8px; }
-  .panel-right { right: 8px; width: 160px; }
+  .panel       { width: 170px; padding: 12px; }
+  .panel-right { width: 170px; }
 }
 
-/* ---------- Responsive: Mobile — reset overlay layout ---------- */
+/* ---------- Responsive: Mobile ---------- */
 @media (max-width: 767px) {
   :root { --sq-size: min(11.5vw, 56px); }
 
-  /* Switch back to scrollable flex column */
-  .app-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 16px 12px 32px;
-    gap: 16px;
-    background: rgba(4, 2, 10, 0.72);
-  }
-
-  .game-header {
-    position: relative;
-    top: auto; left: auto;
-    transform: none;
-    white-space: normal;
-  }
-
   .game-layout {
-    position: relative;
-    display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
   }
 
-  /* Panels back to inline flow */
   .panel {
-    position: relative;
-    left: auto; right: auto; top: auto;
-    transform: none;
     width: 100%;
     max-width: 480px;
     flex-direction: row;
@@ -837,19 +786,9 @@ body {
   .panel-left  { order: 2; }
   .panel-right { order: 3; width: 100%; max-width: 480px; }
 
-  /* Board back to inline flow, no perspective */
-  .board-section {
-    order: 1;
-    position: relative;
-    left: auto; bottom: auto;
-    transform: none;
-  }
+  .board-section { order: 1; }
 
-  .board-wrapper {
-    transform: none;
-  }
-
-  .player-card    { flex: 1 1 140px; }
+  .player-card        { flex: 1 1 140px; }
   .thinking-indicator { flex: 0 0 100%; justify-content: center; }
   .captured-pieces    { flex: 1 1 100%; }
   .control-group      { flex: 1 1 45%; min-width: 140px; }
