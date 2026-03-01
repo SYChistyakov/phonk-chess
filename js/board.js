@@ -68,19 +68,6 @@ const Board = (() => {
         sq.id = 'sq-' + square;
         sq.dataset.square = square;
 
-        // Corner labels: rank on first file, file on last rank
-        if (fi === 0) {
-          const rl = document.createElement('span');
-          rl.className = 'sq-label rank';
-          rl.textContent = rank;
-          sq.appendChild(rl);
-        }
-        if (ri === rows.length - 1) {
-          const fl = document.createElement('span');
-          fl.className = 'sq-label file';
-          fl.textContent = file;
-          sq.appendChild(fl);
-        }
 
         sq.addEventListener('click', () => _handleClick(square));
         sq.addEventListener('touchend', (e) => { e.preventDefault(); _handleClick(square); });
