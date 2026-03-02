@@ -24,6 +24,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  cursor: none !important;
 }
 
 html, body {
@@ -40,6 +41,68 @@ body {
     linear-gradient(rgba(4,2,10,0.55), rgba(4,2,10,0.55)),
     url('../assets/img/bg.png') center top / cover no-repeat fixed;
   min-height: 100vh;
+}
+
+/* ---------- Scanlines overlay ---------- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.06) 3px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ---------- Custom Neon Cursor ---------- */
+#neon-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--neon-cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;
+  transform: translate(var(--cx, -100px), var(--cy, -100px)) translate(-50%, -50%);
+  box-shadow: 0 0 7px rgba(0, 212, 255, 0.7), inset 0 0 4px rgba(0, 212, 255, 0.1);
+  transition: width 0.15s, height 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.2s;
+}
+
+#neon-cursor::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 5px var(--neon-cyan);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+/* Hovering over the board: target reticle style */
+#neon-cursor.on-board {
+  width: 28px;
+  height: 28px;
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 10px rgba(179, 71, 255, 0.8), inset 0 0 5px rgba(179, 71, 255, 0.15);
+}
+
+#neon-cursor.on-board::before {
+  background: var(--neon-purple);
+  box-shadow: 0 0 6px var(--neon-purple);
+}
+
+/* Click pulse */
+#neon-cursor.clicking {
+  transform: translate(var(--cx, -100px), var(--cy, -100px)) translate(-50%, -50%) scale(0.65);
 }
 
 /* ---------- Drift Smoke Particles ---------- */
@@ -104,11 +167,23 @@ body {
 
 .title-phonk {
   color: var(--neon-purple);
+  animation: flickerPurple 9s linear infinite;
 }
 
 .title-chess {
   color: var(--neon-cyan);
   margin-left: 0.15em;
+  animation: flickerCyan 13s linear infinite;
+}
+
+@keyframes flickerPurple {
+  0%, 16%, 18%, 20%, 75%, 100% { opacity: 1; }
+  17%, 19%                      { opacity: 0.25; }
+}
+
+@keyframes flickerCyan {
+  0%, 48%, 50%, 53%, 88%, 100% { opacity: 1; }
+  49%, 52%                      { opacity: 0.2; }
 }
 
 .game-subtitle {
@@ -159,21 +234,69 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid transparent;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.35s, box-shadow 0.35s, background 0.35s;
 }
 
-.player-card.active {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+/* Left accent bar — racing stripe */
+.player-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  transition: background 0.35s, box-shadow 0.35s;
 }
+
+.player-card--ai::before    { background: rgba(0, 212, 255, 0.25); }
+.player-card--human::before { background: rgba(179, 71, 255, 0.25); }
+
+/* Active: CPU card glows cyan */
+.player-card--ai.active {
+  border-color: rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.06);
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.12), inset 0 0 24px rgba(0, 212, 255, 0.04);
+}
+.player-card--ai.active::before {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan), 0 0 18px rgba(0, 212, 255, 0.5);
+}
+
+/* Active: human card glows purple */
+.player-card--human.active {
+  border-color: rgba(179, 71, 255, 0.35);
+  background: rgba(179, 71, 255, 0.06);
+  box-shadow: 0 0 18px rgba(179, 71, 255, 0.12), inset 0 0 24px rgba(179, 71, 255, 0.04);
+}
+.player-card--human.active::before {
+  background: var(--neon-purple);
+  box-shadow: 0 0 8px var(--neon-purple), 0 0 18px rgba(179, 71, 255, 0.5);
+}
+
+/* Piece icon container */
+.player-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  transition: border-color 0.35s, background 0.35s;
+}
+.player-card--ai.active    .player-icon { border-color: rgba(0, 212, 255, 0.3);  background: rgba(0, 212, 255, 0.08); }
+.player-card--human.active .player-icon { border-color: rgba(179, 71, 255, 0.3); background: rgba(179, 71, 255, 0.08); }
 
 .player-piece-icon {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
@@ -188,27 +311,47 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
 
 .player-tag {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-dim);
-  letter-spacing: 0.2em;
-  font-weight: 500;
+  letter-spacing: 0.25em;
+  font-weight: 600;
+  margin-top: 2px;
+  transition: color 0.35s;
 }
+.player-card--ai.active    .player-tag { color: var(--neon-cyan); }
+.player-card--human.active .player-tag { color: var(--neon-purple); }
 
+/* Status dot */
 .player-status {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: transparent;
-  transition: background 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
 }
 
-.player-card.active .player-status {
+.player-card--ai.active .player-status {
   background: var(--neon-cyan);
+  border-color: var(--neon-cyan);
   box-shadow: 0 0 8px var(--neon-cyan);
+  animation: statusPulse 1.8s ease-in-out infinite;
+}
+.player-card--human.active .player-status {
+  background: var(--neon-purple);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 8px var(--neon-purple);
+  animation: statusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
 }
 
 /* ---------- Thinking Indicator ---------- */
@@ -262,13 +405,15 @@ body {
 .captured-pieces {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(179, 71, 255, 0.12);
 }
 
 .captured-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 8px;
+  letter-spacing: 0.3em;
   color: var(--text-dim);
 }
 
@@ -276,13 +421,17 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  min-height: 24px;
+  min-height: 26px;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .captured-list img {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
+  width: 17px;
+  height: 17px;
+  opacity: 0.75;
 }
 
 /* ---------- Board Section ---------- */
@@ -298,25 +447,70 @@ body {
   display: inline-block;
 }
 
-/* Board neon border via box-shadow (matches piece glow style) */
+/* Board neon border — animated purple↔cyan glow cycle */
 .board-wrapper {
-  box-shadow:
-    0 0 0 2px rgba(179, 71, 255, 0.7),
-    0 0 18px rgba(179, 71, 255, 0.4),
-    0 0 40px rgba(0, 212, 255, 0.15);
+  animation: borderGlow 3.5s ease-in-out infinite;
 }
 
-/* Check state: swap to red pulse */
+/* Floor glow line — neon reflecting off wet asphalt */
+.board-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: -14px;
+  left: 8%; right: 8%;
+  height: 10px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(179, 71, 255, 0.55) 30%,
+    rgba(0, 212, 255, 0.55) 70%,
+    transparent
+  );
+  filter: blur(5px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Check state: swap to red pulse + chromatic aberration */
 .board-wrapper.in-check {
   box-shadow:
     0 0 0 2px rgba(255, 0, 64, 0.9),
     0 0 18px rgba(255, 0, 64, 0.6),
-    0 0 50px rgba(255, 0, 64, 0.3);
-  animation: checkPulse 0.6s ease-in-out infinite alternate;
+    0 0 50px rgba(255, 0, 64, 0.3),
+    0 28px 45px rgba(255, 0, 64, 0.20),
+    0 50px 80px rgba(255, 0, 64, 0.10);
+  animation: checkPulse 0.6s ease-in-out infinite alternate,
+             chromaShift 0.35s steps(1) infinite;
 }
 
-/* Remove the pseudo-element entirely */
+@keyframes chromaShift {
+  0%   { filter: drop-shadow(-3px 0 2px rgba(255,0,64,0.7))  drop-shadow(3px 0 2px rgba(0,212,255,0.6)); }
+  33%  { filter: drop-shadow(3px 0 2px rgba(255,0,64,0.5))   drop-shadow(-3px 0 2px rgba(0,212,255,0.8)); }
+  66%  { filter: drop-shadow(-2px 0 3px rgba(255,0,64,0.9))  drop-shadow(2px 0 3px rgba(0,212,255,0.5)); }
+  100% { filter: drop-shadow(3px 0 2px rgba(255,0,64,0.6))   drop-shadow(-2px 0 2px rgba(0,212,255,0.7)); }
+}
+
+/* Remove pseudo-element — border is handled by box-shadow */
 .board-wrapper::before { display: none; }
+
+@keyframes borderGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px rgba(179, 71, 255, 0.85),
+      0 0 14px rgba(179, 71, 255, 0.55),
+      0 0 40px rgba(0, 212, 255, 0.12),
+      0 28px 45px rgba(179, 71, 255, 0.22),
+      0 50px 80px rgba(0, 212, 255, 0.10);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(0, 212, 255, 0.85),
+      0 0 14px rgba(0, 212, 255, 0.55),
+      0 0 40px rgba(179, 71, 255, 0.12),
+      0 28px 45px rgba(0, 212, 255, 0.22),
+      0 50px 80px rgba(179, 71, 255, 0.10);
+  }
+}
 
 @keyframes checkPulse {
   from { box-shadow: 0 0 0 2px rgba(255,0,64,0.7), 0 0 18px rgba(255,0,64,0.4), 0 0 40px rgba(255,0,64,0.2); }
@@ -825,6 +1019,33 @@ body {
   width: auto;
   padding: 12px 40px;
   font-size: 13px;
+}
+
+/* ---------- Move Trail Dots ---------- */
+.move-trail-dot {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 499;
+  animation: trailFade 0.42s ease-out forwards;
+}
+
+.trail-purple {
+  background: var(--neon-purple);
+  box-shadow: 0 0 8px var(--neon-purple), 0 0 18px rgba(179, 71, 255, 0.6);
+}
+
+.trail-cyan {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan), 0 0 18px rgba(0, 212, 255, 0.6);
+}
+
+@keyframes trailFade {
+  0%   { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+  100% { opacity: 0;   transform: translate(-50%, -50%) scale(0.2); }
 }
 
 /* ---------- Responsive: Tablet ---------- */

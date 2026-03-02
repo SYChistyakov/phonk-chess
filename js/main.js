@@ -78,6 +78,7 @@ function init() {
 
   _initWorker();
   _setupUI();
+  _initCursor();
   _updateStatus();
   _updateTurnIndicators();
   _clearHistory();
@@ -214,7 +215,7 @@ function _onPlayerMove(from, to, promotion) {
   }
 
   Board.setLastMove(from, to);
-  Board.render();
+  Board.animateMove(from, to, () => Board.render());
   _addHistoryMove(moveResult, chess.history().length);
   _updateCaptured();
 
@@ -338,7 +339,7 @@ function _onWorkerMessage(e) {
   }
 
   Board.setLastMove(from, to);
-  Board.render();
+  Board.animateMove(from, to, () => Board.render());
   _addHistoryMove(moveResult, chess.history().length);
   _updateCaptured();
 
@@ -543,6 +544,29 @@ function _showOverlay(title, subtitle, icon) {
 function _hideOverlay() {
   elOverlay.classList.remove('visible');
   elOverlay.setAttribute('aria-hidden', 'true');
+}
+
+/* ---- Custom neon cursor ---- */
+function _initCursor() {
+  if (window.matchMedia('(hover: none)').matches) return; // skip touch devices
+
+  const cur = document.createElement('div');
+  cur.id = 'neon-cursor';
+  document.body.appendChild(cur);
+
+  document.addEventListener('mousemove', (e) => {
+    cur.style.setProperty('--cx', e.clientX + 'px');
+    cur.style.setProperty('--cy', e.clientY + 'px');
+  });
+
+  document.addEventListener('mouseleave', () => { cur.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { cur.style.opacity = '1'; });
+  document.addEventListener('mousedown', () => cur.classList.add('clicking'));
+  document.addEventListener('mouseup',   () => cur.classList.remove('clicking'));
+
+  const grid = document.getElementById('board-grid');
+  grid.addEventListener('mouseenter', () => cur.classList.add('on-board'));
+  grid.addEventListener('mouseleave', () => cur.classList.remove('on-board'));
 }
 
 /* ---- Bootstrap ---- */

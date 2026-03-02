@@ -281,10 +281,74 @@ const Board = (() => {
     setCheck(false);
   }
 
+  /* ---- Public: animate piece flying from → to, then call callback ---- */
+  function animateMove(fromSq, toSq, callback) {
+    const fromEl = _sqEl(fromSq);
+    const toEl   = _sqEl(toSq);
+    if (!fromEl || !toEl) { callback(); return; }
+
+    const pieceEl = fromEl.querySelector('.piece');
+    if (!pieceEl) { callback(); return; }
+
+    const fr = fromEl.getBoundingClientRect();
+    const tr = toEl.getBoundingClientRect();
+
+    // Piece is 85% of square, centred
+    const pw = fr.width  * 0.85;
+    const ph = fr.height * 0.85;
+    const sx = fr.left + fr.width  * 0.075;
+    const sy = fr.top  + fr.height * 0.075;
+    const dx = tr.left + tr.width  * 0.075;
+    const dy = tr.top  + tr.height * 0.075;
+
+    const isWhite = pieceEl.classList.contains('white');
+
+    // Hide original so it doesn't show during flight
+    pieceEl.style.opacity = '0';
+
+    // Create flying clone
+    const clone = pieceEl.cloneNode(true);
+    clone.style.cssText =
+      `position:fixed;left:${sx}px;top:${sy}px;width:${pw}px;height:${ph}px;` +
+      `pointer-events:none;z-index:500;margin:0;padding:0;` +
+      `transition:left 0.18s ease-in,top 0.18s ease-in;`;
+    document.body.appendChild(clone);
+
+    // Spawn neon trail dots along the path
+    const STEPS = 5;
+    for (let i = 1; i < STEPS; i++) {
+      const t = i / STEPS;
+      setTimeout(() => {
+        _spawnTrailDot(
+          sx + (dx - sx) * t + pw / 2,
+          sy + (dy - sy) * t + ph / 2,
+          isWhite
+        );
+      }, i * 22);
+    }
+
+    // Trigger CSS transition on next paint
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      clone.style.left = dx + 'px';
+      clone.style.top  = dy + 'px';
+    }));
+
+    setTimeout(() => { clone.remove(); callback(); }, 200);
+  }
+
+  function _spawnTrailDot(x, y, isWhite) {
+    const dot = document.createElement('div');
+    dot.className = 'move-trail-dot ' + (isWhite ? 'trail-purple' : 'trail-cyan');
+    dot.style.left = x + 'px';
+    dot.style.top  = y + 'px';
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 420);
+  }
+
   /* ---- Helper: get square DOM element ---- */
   function _sqEl(square) {
     return document.getElementById('sq-' + square);
   }
 
-  return { init, render, clearSelection, setLastMove, flip, setCheck, flashCapture, reset };
+  return { init, render, clearSelection, setLastMove, flip, setCheck, flashCapture, reset, animateMove };
 })();
