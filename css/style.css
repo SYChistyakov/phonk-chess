@@ -213,17 +213,21 @@ body {
 
 /* ---------- Thinking Indicator ---------- */
 .thinking-indicator {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
   border-radius: 6px;
   background: rgba(0, 212, 255, 0.05);
   border: 1px solid rgba(0, 212, 255, 0.15);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .thinking-indicator.visible {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
 }
 
 .thinking-dots {
